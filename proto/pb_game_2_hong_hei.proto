@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+option go_package = "/proto";
+
+
+//进入游戏
+message m_game_2_enter_game_tos{
+  optional int32  game_id = 1;           //0大厅1龙虎2红黑百家乐
+  optional int32  room    = 2;         	 //房间
+  optional int32  desk    = 3;           //桌子
+}
+message m_game_2_enter_game_toc{
+  optional int32  game_id = 1;           //0大厅1龙虎2红黑百家乐
+  optional int32  room    = 2;         	 //普通房间就是房间ID
+  optional int32  desk    = 3;           //桌子
+  repeated p_game_hong_hei_2_sessions  sessions = 4;                  // 场次 1平民  2小资  3老板  4土豪 后期后台配置
+}
+
+message p_game_hong_hei_2_sessions{
+  optional  int64    min_bet       = 1;        // 最小投注金额   // TODO 后台配置
+  optional  int64    max_bet       = 2;        // 最大投注金额
+  optional  int64    min_bet_lucky = 3;        // 幸运一击最小投注金额
+  optional  int64    max_bet_lucky = 4;        // 幸运一击最大投注金额
+}
+
+// 玩家选择场次  C--> S
+message m_player_into_game_hong_hei_2_tos{
+  optional  string  s_id     = 1;                          // 玩家Id
+  optional  int32   sessions = 2;                          // 场次 1平民  2小资  3老板  4土豪
+}
+
+//// 验证资产   S--> C
+//message m_verify_coin_hong_hei_2_toc{
+//  optional  string  s_id             = 1;                  // 玩家Id
+//  optional  bool    enough           = 2;                  // 资产是否足够  true 足够   false 资产不足
+//}
+
+
+// 进入场次返回所有桌子的信息  S--> C
+message m_all_desk_hong_hei_2_info_toc{
+  optional string          s_id            = 1;    // 玩家id
+  optional string          nickname        = 2;    // 玩家名称
+  optional int64           coin            = 3;    // 金币
+  repeated p_all_desk_hong_hei_2_info desk            = 4;    // 所有桌子信息
+}
+
+// 当前场次内所有牌桌的信息
+message p_all_desk_hong_hei_2_info{
+  optional int32     desk_id    = 1;           // 桌子Id
+  optional int32     status     = 2;           // 当前桌子的状态  1未下注  2下注中  3开牌中  4结算中
+  optional int32     next_time  = 3;           // 下次状态变化的时间
+  optional int32     set        = 4;           // 进行到第几局
+  // TODO 已开牌的结果  人数...
+}
+
+// 游戏服主动推送状态的改变
+message m_desk_status_change_toc{
+  optional int32 desk_id      = 1;  // 桌子Id
+  optional int32 next_status  = 2;  // 即将到来的状态
+  optional int32 time         = 3;  // 状态持续时间
+  repeated p_robot_bet rbet   = 4;  // 机器人下注
+}
+
+// 机器人下注
+message p_robot_bet{
+  optional int32 area   = 1; // 区域
+  optional int64 nums   = 2; // 数量
+}
+
+
+// 玩家进入桌子 C-->S
+message m_player_into_desk_hong_hei_2_tos{
+  optional string      s_id            = 1;    // 玩家id
+  optional int32       session_id      = 2;    // 场次Id
+  optional int32       desk_id         = 3;    // 桌子号
+}
+
+// 返回当前桌子信息  S--> C
+message m_desk_info_toc{
+  optional string               s_id            = 1;    // 玩家id
+  optional int64                coin            = 2;    // 我的金币
+  optional int32                status          = 3;	  // 当前桌子的状态
+  optional int32                next_time       = 4;    // 下一个状态变化的时间
+  optional int32                set             = 5;    // 第几局
+  repeated p_desk_info_hong_hei_2_history  history         = 6;    // 当前桌子的输赢记录  保留n条
+  repeated p_desk_bet_hong_hei_2_area      bet_area        = 7;    // 投注区域信息
+  repeated p_desk_my_bet_hong_hei_2_info   my_bet          = 8;   // 我的投注信息
+}
+
+// 当前桌子的输赢记录
+message p_desk_info_hong_hei_2_history{
+  optional int32   set  = 1;         // 第几局
+  optional int32   win  = 2;         // 哪一方赢了
+  optional int32   px   = 3;         // 牌型
+}
+
+// 投注区域信息
+message p_desk_bet_hong_hei_2_area{
+  optional int64                           area             = 1;         // 区域
+  optional int64                           area_bet         = 2;         // 下注区域的金额
+  repeated p_desk_ood_lucky_hong_hei_2     ood              = 3;         // 赔率
+}
+
+// 幸运一击赔率
+message p_desk_ood_lucky_hong_hei_2{
+  optional int32    px   = 1;    // 牌型
+  optional float  ood  = 2;    // 赔率
+}
+
+// 当前牌桌我的投注信息
+message p_desk_my_bet_hong_hei_2_info{
+  optional int32 area   = 1;     // 投注区域
+  optional int64 my_bet = 2;     // 我的投注
+}
+
+// 玩家投注 C--> S
+message m_player_bet_hong_hei_2_tos{
+  optional string s_id    = 1;     // 玩家id
+  optional int32  area    = 2;     // 投注区域
+  optional int64  nums    = 3;     // 投注数量
+}
+
+// 返回玩家下注信息
+message m_player_bet_hong_hei_2_toc{
+  optional int64                   my_chip    = 1;		 // 我自己剩下的筹码
+  optional int32                   area_now   = 2;     // 当次下注区域
+  optional int64                   chip_now   = 3;     // 当次下注数量
+  repeated p_player_bet_hong_hei_2 player_bet = 4;     // 玩家下注总额
+
+}
+
+message p_player_bet_hong_hei_2{
+  optional int32   area = 1;									// 下注区域
+  optional int64   my_all_chip = 2;					  // 该区域我自己的下注总额
+}
+
+// 游戏结果 S--> C
+message m_game_result_hong_hei_2_toc{
+  optional int32  win                               = 1;     // 胜利方
+  optional int32  red_px                            = 2;     // 红方牌型
+  repeated int32  red_cards                         = 3;     // 红方牌组
+  optional int32  black_px                          = 4;     // 黑方牌型
+  repeated int32  black_cards                       = 5;     // 黑方牌组
+  repeated p_player_settlement_info settlement_info = 6;     // 结算信息
+}
+
+
+message p_player_settlement_info{
+  optional string s_id              = 1;    // 玩家id
+  optional bool   win               = 2;    // 输或者赢
+  optional int64 change_gold        = 3;    // 总输赢
+  repeated p_bet_info  bet_info     = 4;    // 每个玩家的投注信息
+}
+message p_bet_info{
+  optional int32  bet_area = 1;    // 我的投注区域
+  optional int64  nums = 2;        // 数量
+}
+
+// 玩家退出桌子
+message m_player_out_hong_hei_2_tos{
+  optional string  s_id  = 1;     // 玩家id
+}
+
+
+// 玩家请求游戏记录
+message m_player_record_hong_hei_2_tos{
+  optional string  s_id  = 1;     // 玩家id
+  optional int32   nums  = 2;     // 请求的数量
+}
+
+// 服务器回游戏记录
+message m_player_recordRes_hong_hei_2_toc{
+ repeated   p_player_record  record = 1;
+}
+
+message p_player_record{
+  optional int32   set      = 1;  // 局数
+  optional int64   nums     = 2;  // 输赢数量
+  optional int64   end_time = 3;  // 结束时间
+}
